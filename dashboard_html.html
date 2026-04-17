@@ -86,6 +86,9 @@ const ld=(k,fb)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}};
 const initF=(date="")=>({text:"",cat:"Pessoal",priority:"Fazer",startDate:date,startTime:"",endDate:"",endTime:""});
 const byPrio=arr=>[...arr].sort((a,b)=>(PRIOS[a.priority]?.order??4)-(PRIOS[b.priority]?.order??4));
+const authGet=()=>{try{return sessionStorage.getItem("auth")==="1";}catch{return false;}};
+const authSet=()=>{try{sessionStorage.setItem("auth","1");}catch{}};
+const authClear=()=>{try{sessionStorage.removeItem("auth");}catch{}};
 
 /* ═══════════════════════════════════════════
    LOGIN
@@ -93,7 +96,7 @@ const byPrio=arr=>[...arr].sort((a,b)=>(PRIOS[a.priority]?.order??4)-(PRIOS[b.pr
 function Login({onLogin}){
   const [pw,setPw]=useState(""),[err,setErr]=useState(false),[shake,setShake]=useState(false);
   const submit=()=>{
-    if(pw===PASSWORD){sessionStorage.setItem("auth","1");onLogin();}
+    if(pw===PASSWORD){authSet();onLogin();}
     else{setErr(true);setShake(true);setTimeout(()=>{setErr(false);setShake(false);},700);}
   };
   return(
@@ -319,7 +322,7 @@ function App(){
   const toggleTask=id=>saveTasks(tasks.map(t=>t.id===id?{...t,done:!t.done}:t));
   const deleteTask=id=>saveTasks(tasks.filter(t=>t.id!==id));
   const toggleHabit=hid=>{const u={...habits,[hid]:!habits[hid]};setHabits(u);sv("d:habits",u);const done=HABITS.filter(h=>u[h.id]).length;const wk={...weekly,[`${todayStr()}_${new Date().getDay()}`]:done};setWeekly(wk);sv("d:weekly",wk);};
-  const logout=()=>{sessionStorage.removeItem("auth");window.location.reload();};
+  const logout=()=>{authClear();window.location.reload();};
 
   // Derivados
   const greeting=()=>{const h=now.getHours();return h<12?"Bom dia":h<18?"Boa tarde":"Boa noite";};
@@ -546,7 +549,7 @@ function App(){
    ROOT — controla autenticação
    ═══════════════════════════════════════════ */
 function Root(){
-  const [auth,setAuth]=useState(!!sessionStorage.getItem("auth"));
+  const [auth,setAuth]=useState(authGet());
   return auth?<App/>:<Login onLogin={()=>setAuth(true)}/>;
 }
 
